@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "buffer.h": "c",
+        "socket.h": "c",
+        "in.h": "c",
+        "requests.h": "c",
+        "string": "cpp",
+        "sstream": "cpp",
+        "iostream": "cpp",
+        "array": "cpp",
+        "any": "cpp",
+        "string_view": "cpp",
+        "ranges": "cpp"
+    }
+}
