@@ -69,83 +69,18 @@ int main() {
 
         if (strcmp(command, "register") == 0) {
             register_user(sockfd, local_host, "/api/v1/tema/auth/register", json_form, jwt_token);
-            // read the username and password from the user
-            // credentials = read_user_credentials();
-            // request = compute_json_post_request(local_host, "/api/v1/tema/auth/register", json_form, credentials, NULL, 0, jwt_token);
-            // printf("%s\n", request);
-            // send_to_server(sockfd, request);
-            // response = receive_from_server(sockfd);
-
-            // printf("%s\n", response);
-            // // reset the credentials
-            // credentials.clear();
-            // free(request);
-            // free(response);
         }
 
         if (strcmp(command, "login") == 0) {
-            // read the username and password from the user
-            
-            // if there are coockies, add them to the request
-            if (coockies != NULL && coockies[0][0] != '\0') {
-                printf("%sAlreadyLoggedIn%s\n", PRINT_RESPONSE, PRINT_RESPONSE);
-                // request = compute_json_post_request(local_host, "/api/v1/tema/auth/login", json_form, credentials, coockies, 1);
-
-            } else {
-                credentials = read_user_credentials();
-                request = compute_json_post_request(local_host, "/api/v1/tema/auth/login", json_form, credentials, NULL, 0, jwt_token);
-                printf("%s\n", request);
-                send_to_server(sockfd, request);
-                free(request);
-                response = receive_from_server(sockfd);
-                printf("%s\n", response);
-
-                // extract the coockies from the response
-                if (strlen(coockies[0]) == 0) {
-                    extract_coockies(response, coockies);
-                    printf("%sCoockiesExtracted%s\n", PRINT_RESPONSE, PRINT_RESPONSE);
-                }
-                // reset the credentials
-                credentials.clear();
-                free(response);
-            }
+            login_user(sockfd, local_host, "/api/v1/tema/auth/login", json_form, jwt_token, coockies);
         }
 
         if (strcmp(command, "enter_library") == 0) {
-            // if there are coockies, add them to the request
-            if (coockies != NULL && coockies[0][0] != '\0') {
-                request = compute_get_request(local_host, "/api/v1/tema/library/access", "", coockies, 1, jwt_token);
-            } else {
-                request = compute_get_request(local_host, "/api/v1/tema/library/access", "", NULL, 0, jwt_token);
-            }
-            printf("%s\n", request);
-            send_to_server(sockfd, request);
-            response = receive_from_server(sockfd);
-            printf("%s\n", response);
-
-            // extract JWT from the response
-            jwt_token = ordered_json::parse(basic_extract_json_response(response));
-            printf("%sJWTExtracted%s\n", PRINT_RESPONSE, PRINT_RESPONSE);
-            // coockies = extract_coockies(response);
-
-            free(request);
-            free(response);
+            jwt_token = enter_library(sockfd, local_host, "/api/v1/tema/library/access", jwt_token, coockies);
         }
 
         if (strcmp(command, "get_books") == 0) {
-            // if there are coockies, add them to the request
-            if (coockies != NULL && coockies[0][0] != '\0') {
-                request = compute_get_request(local_host, "/api/v1/tema/library/books", "", coockies, 1, jwt_token);
-            } else {
-                request = compute_get_request(local_host, "/api/v1/tema/library/books", "", NULL, 0, jwt_token);
-            }
-            printf("%s\n", request);
-            send_to_server(sockfd, request);
-            response = receive_from_server(sockfd);
-            printf("%s\n", response);
-
-            free(request);
-            free(response);
+            get_books(sockfd, local_host, "/api/v1/tema/library/books", jwt_token, coockies);
         }
 
         if (strcmp(command, "get_book") == 0) {
