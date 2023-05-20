@@ -35,6 +35,9 @@ char *basic_extract_json_response(char *str);
 // receives input from the user and returns the credentials in a JSON format
 ordered_json read_user_credentials();
 
+// receives input from the user and returns the book in a JSON format
+ordered_json read_book_details();
+
 // receives input from the server and extracts the coockies
 void extract_coockies(char *response, char **coockies);
 

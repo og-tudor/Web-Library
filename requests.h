@@ -20,4 +20,7 @@ char *compute_json_post_request(string host, string url, string content_type,
 								ordered_json body_data, char** cookies,
 								int cookies_count, ordered_json jwt_token);
 
+char *compute_delete_request(string host, string url, ordered_json jwt_token);
+
+
 #endif

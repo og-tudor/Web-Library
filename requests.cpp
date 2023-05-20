@@ -176,3 +176,30 @@ char *compute_json_post_request(string host, string url, string content_type,
   free(body_data_buffer);
   return message;
 }
+
+char *compute_delete_request(string host, string url, ordered_json jwt_token) {
+  char *message = (char*)calloc(BUFLEN, sizeof(char));
+  char *line = (char*)calloc(LINELEN, sizeof(char));
+
+  // write the method name, URL and protocol type
+  sprintf(line, "DELETE %s HTTP/1.1", url.data());
+  compute_message(message, line);
+
+  // add the host
+  sprintf(line, "Host: %s", host.data());
+  compute_message(message, line);
+
+  // add jwt token if it exists
+  if (!jwt_token.empty()) {
+    memset(line, 0, LINELEN);
+    string token;
+    token = jwt_token["token"];
+    sprintf(line, "Authorization: Bearer %s", token.data());
+    compute_message(message, line);
+  }
+
+  // add final new line
+  compute_message(message, "");
+  free(line);
+  return message;
+}

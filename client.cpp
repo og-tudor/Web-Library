@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include "helpers.h"
 #include "requests.h"
+#include "commands.h"
 #include <string>
 #include <nlohmann/json.hpp>
 
@@ -67,18 +68,19 @@ int main() {
         }
 
         if (strcmp(command, "register") == 0) {
+            register_user(sockfd, local_host, "/api/v1/tema/auth/register", json_form, jwt_token);
             // read the username and password from the user
-            credentials = read_user_credentials();
-            request = compute_json_post_request(local_host, "/api/v1/tema/auth/register", json_form, credentials, NULL, 0, jwt_token);
-            printf("%s\n", request);
-            send_to_server(sockfd, request);
-            response = receive_from_server(sockfd);
+            // credentials = read_user_credentials();
+            // request = compute_json_post_request(local_host, "/api/v1/tema/auth/register", json_form, credentials, NULL, 0, jwt_token);
+            // printf("%s\n", request);
+            // send_to_server(sockfd, request);
+            // response = receive_from_server(sockfd);
 
-            printf("%s\n", response);
-            // reset the credentials
-            credentials.clear();
-            free(request);
-            free(response);
+            // printf("%s\n", response);
+            // // reset the credentials
+            // credentials.clear();
+            // free(request);
+            // free(response);
         }
 
         if (strcmp(command, "login") == 0) {
@@ -170,31 +172,7 @@ int main() {
 
         if (strcmp(command, "add_book") == 0) {
             // read the book details from the user
-            ordered_json book_details;
-            char *title = (char *)calloc(LINELEN, sizeof(char));
-            char *author = (char *)calloc(LINELEN, sizeof(char));
-            char *genre = (char *)calloc(LINELEN, sizeof(char));
-            int page_count;
-            char *publisher = (char *)calloc(LINELEN, sizeof(char));
-            printf("title=");
-            fgets(title, LINELEN, stdin);
-            printf("author=");
-            fgets(author, LINELEN, stdin);
-            printf("genre=");
-            fgets(genre, LINELEN, stdin);
-            printf("page_count=");
-            scanf("%d", &page_count);
-            printf("publisher=");
-            fgets(publisher, LINELEN, stdin);
-            book_details["title"] = title;
-            book_details["author"] = author;
-            book_details["genre"] = genre;
-            book_details["page_count"] = page_count;
-            book_details["publisher"] = publisher;
-            free(title);
-            free(author);
-            free(genre);
-            free(publisher);
+            ordered_json book_details = read_book_details();
             // if there are coockies, add them to the request
             if (coockies != NULL && coockies[0][0] != '\0') {
                 request = compute_json_post_request(local_host, "/api/v1/tema/library/books", json_form, book_details, coockies, 1, jwt_token);
@@ -210,6 +188,50 @@ int main() {
             free(response);
         }
 
+        if (strcmp(command, "delete_book") == 0) {
+            // reading the book_id from the user
+            char *book_id_input = (char *)calloc(LINELEN, sizeof(char));
+            printf("id=");
+            scanf("%s", book_id_input);
+            string book_id = "/api/v1/tema/library/books/" + string(book_id_input);
+            free(book_id_input);
+            // if there are coockies, add them to the request
+            if (coockies != NULL && coockies[0][0] != '\0') {
+                request = compute_delete_request(local_host, book_id, jwt_token);
+            } else {
+                request = compute_delete_request(local_host, book_id, jwt_token);
+            }
+            printf("%s\n", request);
+            send_to_server(sockfd, request);
+            response = receive_from_server(sockfd);
+            printf("%s\n", response);
+
+            free(request);
+            free(response);
+        }
+
+        if (strcmp(command, "logout") == 0) {
+            // if there are coockies, add them to the request
+            if (coockies != NULL && coockies[0][0] != '\0') {
+                request = compute_get_request(local_host, "/api/v1/tema/auth/logout", "", coockies, 1, jwt_token);
+            } else {
+                request = compute_get_request(local_host, "/api/v1/tema/auth/logout", "", NULL, 0, jwt_token);
+            }
+            printf("%s\n", request);
+            send_to_server(sockfd, request);
+            response = receive_from_server(sockfd);
+            printf("%s\n", response);
+
+            // reset the coockies
+            for (int i = 0; i < MAX_COOCKIES; i++) {
+                memset(coockies[i], 0, LINELEN);
+            }
+            printf("%sCoockiesReset%s\n", PRINT_RESPONSE, PRINT_RESPONSE);
+
+            free(request);
+            free(response);
+        }
+
         close_connection(sockfd);
     }
     return 0;
@@ -217,3 +239,4 @@ int main() {
 }
 
 // TODO : Server doesn t respond to any second request
+// TODO : Check that page_count is an integer

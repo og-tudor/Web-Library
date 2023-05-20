@@ -73,6 +73,42 @@ ordered_json read_user_credentials()
     return credentials;
 }
 
+ordered_json read_book_details()
+{
+    ordered_json book_details;
+    char *title = (char *)calloc(LINELEN, sizeof(char));
+    char *author = (char *)calloc(LINELEN, sizeof(char));
+    char *genre = (char *)calloc(LINELEN, sizeof(char));
+    char *page_count = (char *)calloc(LINELEN, sizeof(char));
+    char *publisher = (char *)calloc(LINELEN, sizeof(char));
+    // read the book details from the user
+    printf("title=");
+    fgets(title, LINELEN, stdin);
+    printf("author=");
+    fgets(author, LINELEN, stdin);
+    printf("genre=");
+    fgets(genre, LINELEN, stdin);
+    printf("page_count=");
+    fgets(page_count, LINELEN, stdin);
+    
+    printf("publisher=");
+    fgets(publisher, LINELEN, stdin);
+
+    // add the book details to the book_details
+    book_details["title"] = title;
+    book_details["author"] = author;
+    book_details["genre"] = genre;
+    book_details["page_count"] = page_count;
+    book_details["publisher"] = publisher;
+
+    free(title);
+    free(author);
+    free(genre);
+    free(publisher);
+    free(page_count);
+    return book_details;
+}
+
 void extract_coockies(char *response, char** coockies)
 {
     // char *coockie = (char *)calloc(LINELEN, sizeof(char));
