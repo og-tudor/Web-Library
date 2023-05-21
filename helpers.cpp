@@ -61,9 +61,21 @@ ordered_json read_user_credentials()
     char *password = (char *)calloc(LINELEN, sizeof(char));
     // read the username and password from the user
     printf("username=");
-    scanf("%s", username);
+    fgets(username, LINELEN, stdin);
     printf("password=");
-    scanf("%s", password);
+    fgets(password, LINELEN, stdin);
+
+    // remove the \n from the end of the strings
+    username[strlen(username) - 1] = '\0';
+    password[strlen(password) - 1] = '\0';
+    // check if the username and password don't contain spaces
+    if (strchr(username, ' ') != NULL || strchr(password, ' ') != NULL) {
+        free(username);
+        free(password);
+        credentials.clear();
+        return credentials;
+    }
+
     // add the username and password to the credentials
     credentials["username"] = username;
     credentials["password"] = password;
@@ -88,18 +100,34 @@ ordered_json read_book_details()
     fgets(author, LINELEN, stdin);
     printf("genre=");
     fgets(genre, LINELEN, stdin);
-    printf("page_count=");
-    fgets(page_count, LINELEN, stdin);
-    
     printf("publisher=");
     fgets(publisher, LINELEN, stdin);
+    printf("page_count=");
+    fgets(page_count, LINELEN, stdin);
+    // remove the \n from the end of the strings
+    title[strlen(title) - 1] = '\0';
+    author[strlen(author) - 1] = '\0';
+    genre[strlen(genre) - 1] = '\0';
+    publisher[strlen(publisher) - 1] = '\0';
+    page_count[strlen(page_count) - 1] = '\0';
+
+    // check if the page_count is a number
+    if (strspn(page_count, "0123456789") != strlen(page_count)) {
+        free(title);
+        free(author);
+        free(genre);
+        free(publisher);
+        free(page_count);
+        book_details.clear();
+        return book_details;
+    }
 
     // add the book details to the book_details
     book_details["title"] = title;
     book_details["author"] = author;
     book_details["genre"] = genre;
-    book_details["page_count"] = page_count;
     book_details["publisher"] = publisher;
+    book_details["page_count"] = page_count;
 
     free(title);
     free(author);
