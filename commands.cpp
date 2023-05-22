@@ -206,7 +206,7 @@ void get_book(int sockfd, string local_host, string url, ordered_json *jwt_token
     
     char *error_wrong_id = strstr(response, "\"error\":\"No book was found!\"");
     if (error_wrong_id != NULL) {
-        printf("No book was found with this id\n");
+        printf("400 - Bad Request - No book was found with this id\n");
         free(request);
         free(response);
         return;
@@ -232,6 +232,11 @@ void add_book(int sockfd, string local_host, string url, string content_type, or
     }
     char *request;
     char *response;
+    // check if the jwt token is empty
+    if (jwt_token->empty()) {
+        printf("400 - Bad Request - You don't have access to the library\n");
+        return;
+    }
     ordered_json book;
     // read the book details from the user
     book = read_book_details();
@@ -254,7 +259,7 @@ void add_book(int sockfd, string local_host, string url, string content_type, or
         return;
     }
     
-    printf("Book added successfully\n");
+    printf("200 - OK - Book added successfully\n");
 
     // free the request and response
     free(request);
