@@ -16,10 +16,17 @@
 using namespace std;
 using ordered_json = nlohmann::ordered_json;
 
-void register_user(int sockfd, string local_host, string url, string content_type, ordered_json *jwt_token) {
+void register_user(int sockfd, string local_host, string url,
+                   string content_type, ordered_json *jwt_token) {
     char* request;
     char* response;
     ordered_json credentials;
+
+    // check if the user is already logged in
+    if (!jwt_token->empty()) {
+        printf("400 - Bad Request - Already logged in\n");
+        return;
+    }
 
     // read the username and password from the user
     credentials = read_user_credentials();
@@ -28,12 +35,13 @@ void register_user(int sockfd, string local_host, string url, string content_typ
         printf("400 - Bad Request - Invalid username or password\n");
         return;
     }
-    request = compute_json_post_request(local_host, url, content_type, credentials, NULL, 0, *jwt_token);
+    request = compute_json_post_request(local_host, url, content_type, 
+                                        credentials, NULL, 0, *jwt_token);
     send_to_server(sockfd, request);
     response = receive_from_server(sockfd);
 
     // check if the user is already registered
-    char *error_message = strstr(response, "\"error\":\"The username student is taken!\"");
+    char *error_message = strstr(response, "\"error\":\"The username");
     if (error_message != NULL) {
         printf("400 - Bad Request - User already registered\n");
         free(request);
@@ -47,7 +55,8 @@ void register_user(int sockfd, string local_host, string url, string content_typ
     free(response);
 }
 
-void login_user(int sockfd, string local_host, string url, string content_type, ordered_json *jwt_token, char **coockies) {
+void login_user(int sockfd, string local_host, string url, string content_type,
+                ordered_json *jwt_token, char **coockies) {
     // check if the user is already logged in
     if (coockies != NULL && coockies[0][0] != '\0') {
         printf("400 - Bad Request - Already logged in\n");
@@ -63,13 +72,15 @@ void login_user(int sockfd, string local_host, string url, string content_type, 
         printf("400 - Bad Request - Invalid username or password\n");
         return;
     }
-    request = compute_json_post_request(local_host, url, content_type, credentials, NULL, 0, *jwt_token);
+    request = compute_json_post_request(local_host, url, content_type,
+                                        credentials, NULL, 0, *jwt_token);
     send_to_server(sockfd, request);
     response = receive_from_server(sockfd);
 
     // check if the username or password are wrong
     char *error_fake_user = strstr(response, "\"error\":\"No account with this username!\"");
     char *error_bad_credentials = strstr(response, "\"error\":\"Credentials are not good!\"");
+
     if (error_bad_credentials != NULL || error_fake_user != NULL) {
         printf("400 - Bad Request - Wrong username or password\n");
         free(request);
@@ -88,7 +99,8 @@ void login_user(int sockfd, string local_host, string url, string content_type, 
     return;
 }
 
-ordered_json enter_library(int sockfd, string local_host, string url, ordered_json *jwt_token, char **coockies) {
+ordered_json enter_library(int sockfd, string local_host, string url,
+                           ordered_json *jwt_token, char **coockies) {
     // if the user is not logged in, send an error message
     if (coockies == NULL || coockies[0][0] == '\0') {
         printf("400 - Bad Request - You are not logged in\n");
@@ -98,10 +110,8 @@ ordered_json enter_library(int sockfd, string local_host, string url, ordered_js
     char *request;
     char *response;
     request = compute_get_request(local_host, url, "", coockies, 1, *jwt_token);
-    // printf("%s\n", request);
     send_to_server(sockfd, request);
     response = receive_from_server(sockfd);
-    // printf("%s\n", response);
     // extract JWT from the response
     *jwt_token = ordered_json::parse(basic_extract_json_response(response));
     // free the request and response
@@ -110,7 +120,8 @@ ordered_json enter_library(int sockfd, string local_host, string url, ordered_js
     return *jwt_token;
 }
 
-void get_library(int sockfd, string local_host, string url, ordered_json *jwt_token, char **coockies) {
+void get_library(int sockfd, string local_host, string url,
+                 ordered_json *jwt_token, char **coockies) {
     // if the user is not logged in, send an error message
     if (coockies == NULL || coockies[0][0] == '\0') {
         printf("400 - Bad Request - You are not logged in\n");
@@ -163,7 +174,8 @@ void get_library(int sockfd, string local_host, string url, ordered_json *jwt_to
     return;
 }
 
-void get_book(int sockfd, string local_host, string url, ordered_json *jwt_token, char **coockies) {
+void get_book(int sockfd, string local_host, string url,
+              ordered_json *jwt_token, char **coockies) {
     // read the book id from the user
     printf("id=");
     char *book_id = (char *)calloc(100, sizeof(char));
@@ -223,7 +235,8 @@ void get_book(int sockfd, string local_host, string url, ordered_json *jwt_token
     return;
 }
 
-void add_book(int sockfd, string local_host, string url, string content_type, ordered_json *jwt_token, char **coockies) {
+void add_book(int sockfd, string local_host, string url, string content_type,
+              ordered_json *jwt_token, char **coockies) {
     // if the user is not logged in, send an error message
     if (coockies == NULL || coockies[0][0] == '\0') {
         printf("400 - Bad Request - You are not logged in\n");
@@ -244,7 +257,8 @@ void add_book(int sockfd, string local_host, string url, string content_type, or
         printf("400 - Bad Request - Invalid page number\n");
         return;
     }
-    request = compute_json_post_request(local_host, url, content_type, book, coockies, 1, *jwt_token);
+    request = compute_json_post_request(local_host, url, content_type,
+                                        book, coockies, 1, *jwt_token);
     // printf("%s\n", request);
     send_to_server(sockfd, request);
     response = receive_from_server(sockfd);
@@ -267,7 +281,8 @@ void add_book(int sockfd, string local_host, string url, string content_type, or
     return;
 }
 
-void delete_book(int sockfd, string local_host, string url, ordered_json *jwt_token, char **coockies) {
+void delete_book(int sockfd, string local_host, string url,
+                 ordered_json *jwt_token, char **coockies) {
     // if the user is not logged in, send an error message
     if (coockies == NULL || coockies[0][0] == '\0') {
         printf("400 - Bad Request - You are not logged in\n");
@@ -293,10 +308,9 @@ void delete_book(int sockfd, string local_host, string url, ordered_json *jwt_to
     }
     free(book_id);
     request = compute_delete_request(local_host, url, *jwt_token);
-    // printf("%s\n", request);
+
     send_to_server(sockfd, request);
     response = receive_from_server(sockfd);
-    // printf("%s\n", response);
 
     // get the error message if the user doen't have access to the library
     char *error_authorization = strstr(response, "\"error\":\"Authorization header is missing!\"");
@@ -307,7 +321,7 @@ void delete_book(int sockfd, string local_host, string url, ordered_json *jwt_to
         return;
     }
     
-    char *error_wrong_id = strstr(response, "\"error\":\"No book was found!\"");
+    char *error_wrong_id = strstr(response, "\"error\":\"No book was deleted!\"");
     if (error_wrong_id != NULL) {
         printf("400 - Bad Request - No book was found with this id\n");
         free(request);
@@ -323,7 +337,8 @@ void delete_book(int sockfd, string local_host, string url, ordered_json *jwt_to
     return;
 }
 
-void logout_user(int sockfd, string local_host, string url, ordered_json *jwt_token, char **coockies) {
+void logout_user(int sockfd, string local_host, string url,
+                 ordered_json *jwt_token, char **coockies) {
     // if the user is not logged in, send an error message
     if (coockies == NULL || coockies[0][0] == '\0') {
         printf("400 - Bad Request - You are not logged in\n");

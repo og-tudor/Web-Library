@@ -42,12 +42,9 @@ int main() {
     }
 
     while(1) {
-        // printf("==================New_Command==================\n");
-
         // read the command from the user
         scanf("%s", command);
         fgets(garbage, 100, stdin);
-        // remove the \n from the end of the command
         sockfd = open_connection(host_ip, 8080, AF_INET, SOCK_STREAM, 0);
         // While the user doesn t input exit, keep receiving commands
         if (strcmp(command, "exit") == 0) {
