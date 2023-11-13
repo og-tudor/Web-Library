@@ -1,5 +1,5 @@
 *Frecus Tudor George - 324CA*
-# Web-Client_Rest-Api
+# Web Library
 ###
 ## Description
 To understand the fundamentals of REST architecture, we will build a web client in C++ that
